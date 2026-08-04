@@ -3,15 +3,40 @@
 #include <iostream>
 #include <limits>
 #include <cerrno>
+#include <cstdlib>
+
+bool isChar(const std::string& literal)
+{
+	return (literal.length() == 3 && literal.at(0) == '\'' && literal.at(2) == '\'' && std::isprint(literal.at(1)));
+}
 
 bool isSpecial(const std::string& literal)
 {
 	return (literal == "+inf" || literal == "-inf" || literal == "nan" || literal == "+inff" || literal == "-inff" || literal == "nanf");
 }
 
-bool isChar(const std::string& literal)
+bool isInt(const std::string& literal)
 {
-	return (literal.length() == 3 && literal.at(0) == '\'' && literal.at(2) == '\'' && std::isprint(literal.at(1)));
+	int i = 0;
+	int len = literal.length();
+	if (literal.at(0) == '-' || literal.at(0) == '+')
+		i++;
+	if (i == len || len - i > 10)
+		return (false);
+	if (len - i == 10)
+	{
+		if (literal.at(0) == '+' && literal.compare(i, len - i, "2147483647") > 0)
+			return (false);
+		else if (literal.at(0) == '-' && literal.compare(i, len - i, "2147483648") > 0)
+			return (false);
+	}
+	
+	while (i < len){
+		if (!std::isdigit(literal.at(i)))
+			return (false);
+		i++;
+	}
+	return (true);
 }
 
 bool isNum(const std::string& literal, int len)
@@ -50,31 +75,7 @@ bool isDouble(const std::string& literal)
 
 bool isFloat(const std::string& literal)
 {
-	return (isNum(literal, literal.length() - 1) && literal.back() == 'f');
-}
-
-bool isInt(const std::string& literal)
-{
-	int i = 0;
-	int len = literal.length();
-	if (literal.at(0) == '-' || literal.at(0) == '+')
-		i++;
-	if (i == len || len - i > 10)
-		return (false);
-	if (len - i == 10)
-	{
-		if (literal.at(0) == '+' && literal.compare(i, len - i, "2147483647") > 0)
-			return (false);
-		else if (literal.at(0) == '-' && literal.compare(i, len - i, "2147483648") > 0)
-			return (false);
-	}
-	
-	while (i < len){
-		if (!std::isdigit(literal.at(i)))
-			return (false);
-		i++;
-	}
-	return (true);
+	return (isNum(literal, literal.length() - 1) && literal.at(literal.length() - 1) == 'f');
 }
 
 void printChar(double num)
@@ -87,6 +88,30 @@ void printChar(double num)
 	else
 		std::cout << "Non displayable";
 }
+
+
+// void ScalarConverter::convert(const std::string& literal)
+// {
+// 	if (literal.empty())
+// 	{
+// 		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
+// 		return ;
+// 	}
+// 	if (isChar(literal))
+// 		handleChar(literal);
+// 	else if (isSpecial(literal))
+// 		handleSpec(literal);
+// 	else if (isInt(literal))
+// 		handleInt(literal);
+// 	else if (isFloat(literal))
+// 		handleFloat(literal);
+// 	else if (isDouble(literal))
+// 		handleDouble(literal);
+// 	else
+// 		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
+	
+// }
+
 
 void ScalarConverter::convert(const std::string& literal)
 {
@@ -110,7 +135,7 @@ void ScalarConverter::convert(const std::string& literal)
 		if (literal == "+inf" || literal == "-inf" || literal == "nan")
 			std::cout << "char: Non displayable\n" << "int: Nondisplayable\n" << "float: " << literal << "f\ndouble: " << literal << std::endl;
 		else
-			std::cout << "char: Non displayable\n" << "int: Nondisplayable\n" << "float: " << literal << "f\ndouble: " << literal.substr(0, literal.length() - 1) << std::endl;
+			std::cout << "char: Non displayable\n" << "int: Nondisplayable\n" << "float: " << literal << "\ndouble: " << literal.substr(0, literal.length() - 1) << std::endl;
 		return ;
 	}
 	errno = 0;
@@ -122,11 +147,10 @@ void ScalarConverter::convert(const std::string& literal)
 	}
 	if (isInt(literal))
 	{
-		std::cout << "char: ";
 		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << static_cast<char>(num);
+			std::cout << "char: " << static_cast<char>(num);
 		else
-			std::cout << "char: Non displayable";
+			std::cout << "char: Non displayable";//add invalid case for num > 127 or < 0
 		std::cout << "\nint: " << literal;
 		std::cout << "\nfloat: " << static_cast<float>(num);
 		std::cout << "\ndouble: " << num << std::endl;
@@ -134,14 +158,12 @@ void ScalarConverter::convert(const std::string& literal)
 	}
 	if (isFloat(literal))
 	{
-		num = std::strtod(literal.c_str(), NULL);
-		std::cout << "char: ";
 		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << static_cast<char>(num);
+			std::cout << "char: " << static_cast<char>(num);
 		else
 			std::cout << "char: Non displayable";
 		std::cout << "\nint: ";
-		if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::lowest())
+		if (num > std::numeric_limits<int>::max() || num < -std::numeric_limits<int>::max() - 1)
 			std::cout << "Non displayable";
 		else
 			std::cout << static_cast<int>(num);
@@ -151,19 +173,17 @@ void ScalarConverter::convert(const std::string& literal)
 	}
 	if (isDouble(literal))
 	{
-		num = std::strtod(literal.c_str(), NULL);
-		std::cout << "char: ";
 		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << static_cast<char>(num);
+			std::cout << "char: " << static_cast<char>(num);
 		else
 			std::cout << "char: Non displayable";
 		std::cout << "\nint: ";
-		if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::lowest())
+		if (num > std::numeric_limits<int>::max() || num < -std::numeric_limits<int>::max() - 1)
 			std::cout << "Non displayable";
 		else
 			std::cout << static_cast<int>(num);
 		std::cout << "\nfloat: ";
-		if (num > std::numeric_limits<float>::max() || num < std::numeric_limits<float>::lowest())
+		if (num > std::numeric_limits<float>::max() || num < -std::numeric_limits<float>::max())
 			std::cout << "Non displayable";
 		else
 			std::cout << static_cast<float>(num);
