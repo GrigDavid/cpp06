@@ -44,22 +44,21 @@ static void printConverted(const double& num, int prec = 1)
 		std::cout << "int: Impossible\n";
 	else
 		std::cout << "int: " << static_cast<int>(num) << '\n';
-	
-	//set precision needed
-	std::cout << "double: " << std::fixed << std::setprecision(prec) << num << '\n';
 
 	if (num > std::numeric_limits<float>::max() || num < -std::numeric_limits<float>::max())
 		std::cout << "float: Impossible\n";
 	else
-		std::cout << "float: " << std::fixed << std::setprecision(calcPrec(static_cast<float>(num), prec)) << static_cast<float>(num) << std::endl;
+		std::cout << "float: " << std::fixed << std::setprecision(calcPrec(static_cast<float>(num), prec)) << static_cast<float>(num) << "f\n";	
+
+	std::cout << "double: " << std::fixed << std::setprecision(prec) << num << std::endl;
 }
 
 static void printImpossible()
 {
 	std::cout << "char: Impossible\n"
 	<< "int: Impossible\n"
-	<< "double: Impossible\n"
-	<< "float: Impossible" << std::endl;
+	<< "float: Impossible\n"
+	<< "double: Impossible" << std::endl;
 }
 
 bool wrongNotation(const std::string& s)
@@ -111,22 +110,22 @@ static void	printSpecial(const std::string& s)
 	{
 		std::cout << "char: Impossible\n"
 		<< "int: Impossible\n"
-		<< "double: +inf\n"
-		<< "float: +inff" << std::endl;
+		<< "float: +inff\n"
+		<< "double: +inf" << std::endl;
 	}
 	else if (s == "-inf" || s == "-inff")
 	{
 		std::cout << "char: Impossible\n"
 		<< "int: Impossible\n"
-		<< "double: -inf\n"
-		<< "float: -inff" << std::endl;
+		<< "float: -inff\n"
+		<< "double: -inf" << std::endl;
 	}
 	else
 	{
 		std::cout << "char: Impossible\n"
 		<< "int: Impossible\n"
-		<< "double: nan\n"
-		<< "float: nanf" << std::endl;
+		<< "float: nanf\n"
+		<< "double: nan" << std::endl;
 	}
 }
 
