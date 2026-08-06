@@ -1,222 +1,91 @@
 #include "ScalarConverter.hpp"
-#include <string>
 #include <iostream>
 #include <limits>
-#include <cerrno>
 #include <cstdlib>
 
-bool isChar(const std::string& literal)
+static void printConverted(const double& num)
 {
-	return (literal.length() == 3 && literal.at(0) == '\'' && literal.at(2) == '\'' && std::isprint(literal.at(1)));
-}
+	if (num < 0 || num > 255)
+		std::cout << "char: Impossible\n";
+	else if (std::isprint(num))
+		std::cout << "char: \'" << static_cast<char>(num) << "\'\n";
+	else if (num >= 0 && num < 256)
+		std::cout << "char: Non displayable\n";
 
-bool isSpecial(const std::string& literal)
-{
-	return (literal == "+inf" || literal == "-inf" || literal == "nan" || literal == "+inff" || literal == "-inff" || literal == "nanf");
-}
-
-bool isInt(const std::string& literal)
-{
-	int i = 0;
-	int len = literal.length();
-	if (literal.at(0) == '-' || literal.at(0) == '+')
-		i++;
-	if (i == len || len - i > 10)
-		return (false);
-	if (len - i == 10)
-	{
-		if (literal.at(0) == '+' && literal.compare(i, len - i, "2147483647") > 0)
-			return (false);
-		else if (literal.at(0) == '-' && literal.compare(i, len - i, "2147483648") > 0)
-			return (false);
-	}
-	
-	while (i < len){
-		if (!std::isdigit(literal.at(i)))
-			return (false);
-		i++;
-	}
-	return (true);
-}
-
-bool isNum(const std::string& literal, int len)
-{
-	int	i = 0;
-
-	if (len < 3)
-		return (false);
-	if (literal.at(0) == '-' || literal.at(0) == '+')
-		i++;
-	while (i < len && literal.at(i) != '.')
-	{
-		if (!std::isdigit(literal.at(i)))
-			return (false);
-		i++;
-	}
-	if (i == len)
-		return (false);
-	if (literal.at(i) == '.')
-		i++;
-	if (i == len)
-		return (false);
-	while (i < len)
-	{
-		if (!std::isdigit(literal.at(i)))
-			return (false);
-		i++;
-	}
-	return (true);
-}
-
-bool isDouble(const std::string& literal)
-{
-	return (isNum(literal, literal.length()));
-}
-
-bool isFloat(const std::string& literal)
-{
-	return (isNum(literal, literal.length() - 1) && literal.at(literal.length() - 1) == 'f');
-}
-
-void printChar(double num)
-{
-	std::cout << "char: ";
-	if (num < 0 || num > 127)
-		std::cout << "impossible";
-	else if (std::isprint(static_cast<int>(num)))
-		std::cout << static_cast<char>(num);
+	if (num > std::numeric_limits<int>::max() || num < -std::numeric_limits<int>::max() - 1)
+		std::cout << "int: Impossible\n";
 	else
-		std::cout << "Non displayable";
+		std::cout << "int: " << static_cast<int>(num) << '\n';
+	
+	//set precision needed
+	std::cout << "double: " << num << '\n';
+
+	if (num > std::numeric_limits<float>::max() || num < -std::numeric_limits<float>::max())
+		std::cout << "float: Impossible\n";
+	else
+		std::cout << "float: " << static_cast<float>(num) << std::endl;
 }
 
-
-// void ScalarConverter::convert(const std::string& literal)
-// {
-// 	if (literal.empty())
-// 	{
-// 		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
-// 		return ;
-// 	}
-// 	if (isChar(literal))
-// 		handleChar(literal);
-// 	else if (isSpecial(literal))
-// 		handleSpec(literal);
-// 	else if (isInt(literal))
-// 		handleInt(literal);
-// 	else if (isFloat(literal))
-// 		handleFloat(literal);
-// 	else if (isDouble(literal))
-// 		handleDouble(literal);
-// 	else
-// 		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
-	
-// }
-
-
-void ScalarConverter::convert(const std::string& literal)
+static void printImpossible()
 {
-	double num;
+	std::cout << "char: Impossible\n"
+	<< "int: Impossible\n"
+	<< "double: Impossible\n"
+	<< "float: Impossible" << std::endl;
+}
 
-	if (literal.empty())
-	{
-		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
-		return ;
-	}
-	if (isChar(literal))
-	{
-		std::cout << "char: " << literal.at(1);
-		std::cout << "\nint: " << static_cast<int>(literal.at(1));
-		std::cout << "\nfloat: " << static_cast<float>(literal.at(1));
-		std::cout << "\ndouble: " << static_cast<double>(literal.at(1)) << std::endl;
-		return ;
-	}
-	if (isSpecial(literal))
-	{
-		if (literal == "+inf" || literal == "-inf" || literal == "nan")
-			std::cout << "char: Non displayable\n" << "int: Nondisplayable\n" << "float: " << literal << "f\ndouble: " << literal << std::endl;
-		else
-			std::cout << "char: Non displayable\n" << "int: Nondisplayable\n" << "float: " << literal << "\ndouble: " << literal.substr(0, literal.length() - 1) << std::endl;
-		return ;
-	}
+static void isNum(const std::string& s)
+{
+	char *end;
 	errno = 0;
-	num = std::strtod(literal.c_str(), NULL);
+	double num = std::strtod(s.c_str(), &end);
 	if (errno == ERANGE)
 	{
-		std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
+		printImpossible();
 		return ;
 	}
-	if (isInt(literal))
+	if (*end && (*end != 'f' || *(end + 1)))
 	{
-		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << "char: " << static_cast<char>(num);
-		else
-			std::cout << "char: Non displayable";//add invalid case for num > 127 or < 0
-		std::cout << "\nint: " << literal;
-		std::cout << "\nfloat: " << static_cast<float>(num);
-		std::cout << "\ndouble: " << num << std::endl;
+
+		printImpossible();
 		return ;
 	}
-	if (isFloat(literal))
-	{
-		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << "char: " << static_cast<char>(num);
-		else
-			std::cout << "char: Non displayable";
-		std::cout << "\nint: ";
-		if (num > std::numeric_limits<int>::max() || num < -std::numeric_limits<int>::max() - 1)
-			std::cout << "Non displayable";
-		else
-			std::cout << static_cast<int>(num);
-		std::cout << "\nfloat: " << literal;
-		std::cout << "\ndouble: " << num << std::endl;
-		return ;
-	}
-	if (isDouble(literal))
-	{
-		if (num >= 0 && num <= 127 && std::isprint(static_cast<int>(num)))
-			std::cout << "char: " << static_cast<char>(num);
-		else
-			std::cout << "char: Non displayable";
-		std::cout << "\nint: ";
-		if (num > std::numeric_limits<int>::max() || num < -std::numeric_limits<int>::max() - 1)
-			std::cout << "Non displayable";
-		else
-			std::cout << static_cast<int>(num);
-		std::cout << "\nfloat: ";
-		if (num > std::numeric_limits<float>::max() || num < -std::numeric_limits<float>::max())
-			std::cout << "Non displayable";
-		else
-			std::cout << static_cast<float>(num);
-		std::cout << "\ndouble: " << literal << std::endl;
-		return ;
-	}
-	std::cout << "char: Non displayable\nint: Nondisplayable\nfloat: Nondisplayable\ndouble: Nondisplayable" << std::endl;
+	printConverted(num);
 }
 
+static void	printSpecial(const std::string& s)
+{
+	if (s == "+inf" || s == "+inff")
+	{
+		std::cout << "char: Impossible\n"
+		<< "int: Impossible\n"
+		<< "double: +inf\n"
+		<< "float: +inff" << std::endl;
+	}
+	else if (s == "-inf" || s == "-inff")
+	{
+		std::cout << "char: Impossible\n"
+		<< "int: Impossible\n"
+		<< "double: -inf\n"
+		<< "float: -inff" << std::endl;
+	}
+	else
+	{
+		std::cout << "char: Impossible\n"
+		<< "int: Impossible\n"
+		<< "double: nan\n"
+		<< "float: nanf" << std::endl;
+	}
+}
 
-
-
-
-
-/*
-
-is special ---------------- +-inf, nan
-	char ---------------- impossible
-	int  ---------------- impossible
-	float --------------- +-inff, nanf
-	double -------------- +-inf, nan
-
-is num     ---------------- double, int, float
-	convert to double, cast to 
-	char ---------------- char if printable, impossible if not
-	int ----------------- cast-to-int
-	float --------------- cast-to-float
-	double -------------- double
-
-is char    ---------------- printable chars without '0' to '9'
-	char ---------------- char
-	int ----------------- cast-to-int
-	float --------------- cast-to-int.0f
-	double -------------- cast-to-int.0
-
-*/
+void ScalarConverter::convert(const std::string& s)
+{
+	if (s.length() == 3 && s.at(0) == '\'' && s.at(2) == '\'')
+		printConverted(static_cast<double>(s.at(1)));
+	else if (s == "+inf" || s == "-inf" || s == "nan")
+		printSpecial(s);
+	else if (s == "+inff" || s == "-inff" || s == "nanf")
+		printSpecial(s);
+	else
+		isNum(s);
+}
