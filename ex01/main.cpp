@@ -12,5 +12,5 @@ int main() {
 	std::cout << "Deserialized Data Value: " << deserializedData << std::endl;
 
 	delete originalData;
-	return 0;
+	return (0);
 }

@@ -1,8 +1,6 @@
 #include "Data.hpp"
 
-#include <cstring>
-
-Data::Data() : value(0), name("Smith")
+Data::Data() : value(0), name("")
 {
 }
 

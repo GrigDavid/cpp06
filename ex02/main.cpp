@@ -10,7 +10,6 @@ void identify(Base& p);
 
 int main()
 {
-	
 	std::srand(std::time(NULL));
 	Base *p = generate();
 	identify(p);

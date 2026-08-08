@@ -4,10 +4,12 @@
 class Data {
 	public:
 		Data();
-		Data(const Data& other);
-		Data& operator=(const Data& other);
-		~Data();
 		Data(int newValue, const std::string& newName);
+		Data(const Data& other);
+		~Data();
+
+		Data& operator=(const Data& other);
+
 		void setValue(int newValue);
 		int getValue() const;
 		std::string getName() const;

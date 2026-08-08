@@ -65,7 +65,7 @@ bool wrongNotation(const std::string& s)
 {
 	for (size_t i = 0; i < s.length(); i++)
 	{
-		if (!std::isdigit(s.at(i)) && s.at(i) != '.' && s.at(i) != 'f')
+		if (!std::isdigit(s.at(i)) && s.at(i) != '.' && s.at(i) != 'f' && s.at(i) != '-')
 		{
 			return (true);
 		}
@@ -133,6 +133,8 @@ void ScalarConverter::convert(const std::string& s)
 {
 	if (s.empty())
 		printImpossible();
+	else if (s.length() == 1)
+		printConverted(static_cast<double>(s.at(0)));
 	else if (s.length() == 3 && s.at(0) == '\'' && s.at(2) == '\'')
 		printConverted(static_cast<double>(s.at(1)));
 	else if (s == "+inf" || s == "-inf" || s == "nan")
